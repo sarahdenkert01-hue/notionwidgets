@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Gradient Slider</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .slider-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .slider-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .slider-wrapper {
+            position: relative;
+            margin: 30px 0;
+        }
+
+        .slider-track {
+            width: 100%;
+            height: 20px;
+            background: linear-gradient(to right, 
+                #87CEEB 0%, #87CEEB 16.67%,     /* Sky Blue */
+                #000080 16.67%, #000080 33.33%, /* Navy Blue */
+                #9ACD32 33.33%, #9ACD32 50%,    /* Puke Green */
+                #90EE90 50%, #90EE90 66.67%,    /* Light Green */
+                #FFFF00 66.67%, #FFFF00 83.33%, /* Yellow */
+                #FF0000 83.33%, #FF0000 100%    /* Red */
+            );
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .slider-thumb {
+            width: 30px;
+            height: 30px;
+            background: white;
+            border: 3px solid #333;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s ease;
+        }
+
+        .slider-thumb:active {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .color-display {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #ddd;
+            transition: all 0.3s ease;
+        }
+
+        .color-info {
+            font-size: 16px;
+            font-weight: 400;
+            margin-top: 15px;
+            color: #333;
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .color-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .color-label {
+            text-align: center;
+            flex: 1;
+        }
+
+        @media (max-width: 600px) {
+            .slider-container {
+                padding: 30px 20px;
+            }
+            
+            .slider-title {
+                font-size: 24px;
+            }
+            
+            .color-labels {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="slider-container">
+        <h1 class="slider-title">Energy Gauge</h1>
+        
+        <div class="slider-wrapper">
+            <div class="slider-track" id="sliderTrack">
+                <div class="slider-thumb" id="sliderThumb"></div>
+            </div>
+        </div>
+        
+        <div class="color-labels">
+            <div class="color-label">Sky Blue</div>
+            <div class="color-label">Navy</div>
+            <div class="color-label">Puke Green</div>
+            <div class="color-label">Light Green</div>
+            <div class="color-label">Yellow</div>
+            <div class="color-label">Red</div>
+        </div>
+        
+        <div class="color-display" id="colorDisplay">
+            <div class="color-info" id="colorInfo">Your energy is at it's peak. You're feeling good and able to do things. Don't forget to take breaks to help preserve your energy!</div>
+        </div>
+    </div>
+
+    <script>
+        const sliderTrack = document.getElementById('sliderTrack');
+        const sliderThumb = document.getElementById('sliderThumb');
+        const colorDisplay = document.getElementById('colorDisplay');
+        const colorInfo = document.getElementById('colorInfo');
+
+        // Color stops with their positions and messages
+        const colorStops = [
+            { position: 0, endPosition: 16.67, color: '#87CEEB', name: 'Sky Blue', message: "Your energy is at it's peak. You're feeling good and able to do things. Don't forget to take breaks to help preserve your energy!" },
+            { position: 16.67, endPosition: 33.33, color: '#000080', name: 'Navy Blue', message: "You've noticed you're losing a bit of your energy. You might be starting to notice a bit of fatigue. Take a longer break and try to pace yourself to avoid your energy dipping too low." },
+            { position: 33.33, endPosition: 50, color: '#9ACD32', name: 'Puke Green', message: "50% and feeling the energy starting to drain. It's okay to stop for the day, say no to other people, or just sit down and let yourself relax." },
+            { position: 50, endPosition: 66.67, color: '#90EE90', name: 'Light Green', message: "You're continuing to notice more fatigue, maybe wanting to isolate a bit, you're struggling with socializing. This is the sign you definitely need to slow down. Be mindful of how your body is feeling to preserve the energy that is still there." },
+            { position: 66.67, endPosition: 83.33, color: '#FFFF00', name: 'Yellow', message: "Warning, you are low on fuel. You are getting dangerously close to being on empty. If you have been continuing to push through, stop. You need to take a break, you need to let your mind and body rest." },
+            { position: 83.33, endPosition: 100, color: '#FF0000', name: 'Red', message: "If you're not already collapsing on your bed or completely nonverbal due to the mental drain then you need to find a place you feel safe to sit down, drink some water, and allow yourself to start the recharging process." }
+        ];
+
+        let isDragging = false;
+        let currentPosition = 0;
+
+        // Convert hex to RGB
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function getColorAtPosition(position) {
+            for (let i = 0; i < colorStops.length; i++) {
+                if (position >= colorStops[i].position && position < colorStops[i].endPosition) {
+                    return { color: colorStops[i].color, name: colorStops[i].name, message: colorStops[i].message };
+                }
+            }
+            const lastColor = colorStops[colorStops.length - 1];
+            return { color: lastColor.color, name: lastColor.name, message: lastColor.message };
+        }
+
+        function updateSlider(position) {
+            currentPosition = Math.max(0, Math.min(100, position));
+            sliderThumb.style.left = currentPosition + '%';
+            
+            const { color, name, message } = getColorAtPosition(currentPosition);
+            colorDisplay.style.backgroundColor = color;
+            colorDisplay.style.borderColor = color;
+            colorInfo.textContent = message;
+            if (name === 'Navy Blue' || name === 'Red') {
+                colorInfo.style.color = 'white';
+            } else {
+                colorInfo.style.color = '#333';
+            }
+        }
+
+        function getPositionFromEvent(event) {
+            const rect = sliderTrack.getBoundingClientRect();
+            const clientX = event.type.includes('touch') ? event.touches[0].clientX : event.clientX;
+            const position = ((clientX - rect.left) / rect.width) * 100;
+            return position;
+        }
+
+        sliderTrack.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const position = getPositionFromEvent(e);
+            updateSlider(position);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const position = getPositionFromEvent(e);
+                updateSlider(position);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        sliderTrack.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDragging = true;
+            const position = getPositionFromEvent(e);
+            updateSlider(position);
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                e.preventDefault();
+                const position = getPositionFromEvent(e);
+                updateSlider(position);
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        updateSlider(0);
+    </script>
+</body>
+</html>
